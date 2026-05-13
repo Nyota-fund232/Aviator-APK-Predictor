@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Analytics Tool</title>
+    <style>
+        :root {
+            --primary: #d91d1d;
+            --dark: #141516;
+            --card: #1f2024;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .logo {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .display-area {
+            background: #000;
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+        }
+
+        #multiplier {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.1s, background 0.3s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .history {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">Aviator AI</div>
+        <p>Algorithm: v4.2 Stable</p>
+        
+        <div class="display-area">
+            <div id="multiplier">0.00x</div>
+        </div>
+
+        <button id="predictBtn" class="btn" onclick="getPrediction()">GET PREDICTION</button>
+        
+        <div class="status" id="statusText">Ready to analyze...</div>
+
+        <div class="history" id="historyLog">
+            <!-- Last results appear here -->
+        </div>
+    </div>
+
+    <script>
+        function getPrediction() {
+            const btn = document.getElementById('predictBtn');
+            const display = document.getElementById('multiplier');
+            const status = document.getElementById('statusText');
+            const history = document.getElementById('historyLog');
+
+            // UI Feedback
+            btn.disabled = true;
+            status.innerText = "Analyzing server seeds...";
+            display.style.color = "#555";
+            
+            let counter = 0;
+            const interval = setInterval(() => {
+                display.innerText = (Math.random() * 10).toFixed(2) + "x";
+                counter++;
+                if(counter > 20) clearInterval(interval);
+            }, 50);
+
+            // Mock Logic Delay
+            setTimeout(() => {
+                // Generates a random multiplier based on common crash game distributions
+                let prediction;
+                const rand = Math.random();
+                
+                if (rand < 0.5) {
+                    prediction = (Math.random() * (2.0 - 1.1) + 1.1).toFixed(2); // 50% chance 1x-2x
+                } else if (rand < 0.8) {
+                    prediction = (Math.random() * (5.0 - 2.0) + 2.0).toFixed(2); // 30% chance 2x-5x
+                } else {
+                    prediction = (Math.random() * (15.0 - 5.0) + 5.0).toFixed(2); // 20% chance 5x+
+                }
+
+                display.innerText = prediction + "x";
+                display.style.color = "#fff";
+                status.innerText = "Prediction successful";
+                btn.disabled = false;
+
+                // Add to history
+                const badge = document.createElement('span');
+                badge.className = 'badge';
+                badge.innerText = prediction + "x";
+                history.prepend(badge);
+                if(history.children.length > 4) history.lastChild.remove();
+
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
