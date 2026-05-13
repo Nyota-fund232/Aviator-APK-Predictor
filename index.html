@@ -1,52 +1,106 @@
-// Firebase Configuration (Keep your existing keys)
-  const firebaseConfig = {
-      apiKey: "AIzaSyAWJz5f-yNl0keWJioyo1ikRCyNoGHQ9Ko",
-      authDomain: "aviator-apk-predictor.firebaseapp.com",
-      databaseURL: "https://aviator-apk-predictor-default-rtdb.firebaseio.com",
-      projectId: "aviator-apk-predictor",
-      storageBucket: "aviator-apk-predictor.firebasestorage.app",
-      messagingSenderId: "1070642236131",
-      appId: "1:1070642236131:web:a9cd2c91f5a4b8201293d6"
-  };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Predictor Pro - Auto</title>
+    <style>
+        :root { --primary: #e61e1e; --bg: #0b0b0d; --card: #1c1c1e; --green: #00ff41; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        .app { width: 90%; max-width: 380px; background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid #333; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.8); }
+        .header { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .status-dot { height: 8px; width: 8px; background-color: var(--green); border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .main-display { background: #000; border-radius: 15px; padding: 45px 10px; border: 2px solid var(--primary); margin-bottom: 25px; position: relative; }
+        #multiplier { font-size: 4.5rem; font-weight: 900; margin: 0; transition: color 0.3s; }
+        .btn { background: var(--primary); border: none; color: white; width: 100%; padding: 20px; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; text-transform: uppercase; transition: 0.2s; box-shadow: 0 4px 0 #9e1414; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #9e1414; }
+        .btn:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        .loading-text { font-size: 12px; color: var(--primary); margin-top: 10px; display: none; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
+<div class="app">
+    <div class="header">
+        <span><span class="status-dot"></span>Server: Live</span>
+        <span id="clock">00:00:00</span>
+    </div>
+    
+    <div class="main-display">
+        <p style="margin:0; color:#888; font-size: 13px; font-weight: bold;">NEXT PREDICTION</p>
+        <div id="multiplier">START</div>
+    </div>
 
-  function connectToFirebase() {
-      const btn = document.getElementById('actionBtn');
-      const mult = document.getElementById('multiplier');
-      const loader = document.getElementById('loader');
+    <button class="btn" id="actionBtn" onclick="generateAndSync()">Generate Prediction</button>
+    <div class="loading-text" id="loader">ANALYZING SERVER DATA...</div>
+</div>
 
-      // 1. UI Feedback
-      btn.disabled = true;
-      btn.innerText = "Analyzing...";
-      loader.style.display = "block";
-      mult.style.color = "#444";
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-      // 2. Generate a Random "Prediction"
-      const chance = Math.random();
-      let newResult;
-      if(chance < 0.6) newResult = (Math.random() * (2.0 - 1.1) + 1.1).toFixed(2);
-      else if(chance < 0.9) newResult = (Math.random() * (5.0 - 2.1) + 2.1).toFixed(2);
-      else newResult = (Math.random() * (30.0 - 5.1) + 5.1).toFixed(2);
+<script>
+    // 1. Your Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyAWJz5f-yNl0keWJioyo1ikRCyNoGHQ9Ko",
+        authDomain: "aviator-apk-predictor.firebaseapp.com",
+        databaseURL: "https://aviator-apk-predictor-default-rtdb.firebaseio.com",
+        projectId: "aviator-apk-predictor",
+        storageBucket: "aviator-apk-predictor.firebasestorage.app",
+        messagingSenderId: "1070642236131",
+        appId: "1:1070642236131:web:a9cd2c91f5a4b8201293d6"
+    };
 
-      // 3. UPLOAD the new number to Firebase automatically
-      database.ref('result').set(newResult).then(() => {
-          // 4. Once uploaded, the listener will trigger or we update UI
-          setTimeout(() => {
-              mult.innerText = newResult + "x";
-              mult.style.color = "white";
-              btn.innerText = "Next Prediction";
-              btn.disabled = false;
-              loader.style.display = "none";
-          }, 1500);
-      });
-  }
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-  // Optional: Keep the listener if you want multiple phones to sync
-  database.ref('result').on('value', (snapshot) => {
-      const val = snapshot.val();
-      if(val) {
-          document.getElementById('multiplier').innerText = val + "x";
-      }
-  });
+    // Live Clock
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Initial listener: if someone else clicks, your app updates too
+    database.ref('result').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+            document.getElementById('multiplier').innerText = val + "x";
+        }
+    });
+
+    function generateAndSync() {
+        const btn = document.getElementById('actionBtn');
+        const mult = document.getElementById('multiplier');
+        const loader = document.getElementById('loader');
+
+        // UI Prep
+        btn.disabled = true;
+        btn.innerText = "Syncing...";
+        loader.style.display = "block";
+        mult.style.color = "#444";
+
+        // Logic: Generate a weighted random multiplier
+        const chance = Math.random();
+        let newResult;
+        if(chance < 0.6) newResult = (Math.random() * (1.9 - 1.1) + 1.1).toFixed(2);
+        else if(chance < 0.9) newResult = (Math.random() * (4.5 - 2.0) + 2.0).toFixed(2);
+        else newResult = (Math.random() * (25.0 - 5.0) + 5.0).toFixed(2);
+
+        // Upload to Firebase
+        database.ref('result').set(newResult).then(() => {
+            // Artificial delay to look like high-tech analysis
+            setTimeout(() => {
+                mult.innerText = newResult + "x";
+                mult.style.color = "white";
+                btn.innerText = "Generate Prediction";
+                btn.disabled = false;
+                loader.style.display = "none";
+            }, 1500);
+        }).catch((error) => {
+            alert("Firebase Error: Check your database rules!");
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>
