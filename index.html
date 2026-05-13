@@ -35,6 +35,43 @@
     <div class="loading-text" id="loader">SEARCHING FOR SIGNAL...</div>
 </div>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Predictor Pro</title>
+    <style>
+        :root { --primary: #e61e1e; --bg: #0b0b0d; --card: #1c1c1e; --green: #00ff41; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        .app { width: 90%; max-width: 380px; background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid #333; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.8); }
+        .header { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .status-dot { height: 8px; width: 8px; background-color: var(--green); border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .main-display { background: #000; border-radius: 15px; padding: 45px 10px; border: 2px solid var(--primary); margin-bottom: 25px; position: relative; }
+        #multiplier { font-size: 4.5rem; font-weight: 900; margin: 0; transition: color 0.3s; }
+        .btn { background: var(--primary); border: none; color: white; width: 100%; padding: 20px; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; text-transform: uppercase; transition: 0.2s; box-shadow: 0 4px 0 #9e1414; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #9e1414; }
+        .btn:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        .loading-text { font-size: 12px; color: var(--primary); margin-top: 10px; display: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <div class="header">
+        <span><span class="status-dot"></span>Server: Live</span>
+        <span id="clock">00:00:00</span>
+    </div>
+    
+    <div class="main-display">
+        <p style="margin:0; color:#888; font-size: 13px; font-weight: bold;">NEXT PREDICTION</p>
+        <div id="multiplier">START</div>
+    </div>
+
+    <button class="btn" id="actionBtn" onclick="connectToFirebase()">Initialize AI</button>
+    <div class="loading-text" id="loader">SEARCHING FOR SIGNAL...</div>
+</div>
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -50,6 +87,48 @@
         messagingSenderId: "1070642236131",
         appId: "1:1070642236131:web:a9cd2c91f5a4b8201293d6"
     };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Clock Function
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    function connectToFirebase() {
+        const btn = document.getElementById('actionBtn');
+        const mult = document.getElementById('multiplier');
+        const loader = document.getElementById('loader');
+
+        btn.disabled = true;
+        btn.innerText = "Connecting...";
+        loader.style.display = "block";
+        mult.style.color = "#444";
+
+        // This line listens for changes in your Firebase Database under the name "result"
+        database.ref('result').on('value', (snapshot) => {
+            const val = snapshot.val();
+            
+            // Simulation delay to make it feel like "AI Calculation"
+            setTimeout(() => {
+                if (val) {
+                    mult.innerText = val + "x";
+                    mult.style.color = "white";
+                    btn.innerText = "Refreshed";
+                    btn.disabled = false;
+                    loader.style.display = "none";
+                } else {
+                    mult.innerText = "WAIT";
+                    loader.innerText = "UPLOAD DATA TO FIREBASE...";
+                }
+            }, 1500);
+        });
+    }
+</script>
+</body>
+</html>
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
